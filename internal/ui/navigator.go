@@ -62,16 +62,16 @@ func NavigateBookmarks(categoryTree *category.Node, bookmarks []*bookmark.Bookma
 		}
 
 		templates := &promptui.SelectTemplates{
-			Label:    "{{ . }}",
-			Active:   "▶ {{ .Display }}",
-			Inactive: "  {{ .Display }}",
-			Selected: "{{ .Display }}",
+			Label:    "{{ . | cyan | bold }}",
+			Active:   "{{ \"▶\" | cyan | bold }} {{ .Display | cyan }}",
+			Inactive: "  {{ .Display | faint }}",
+			Selected: "{{ \"✔\" | green | bold }} {{ .Display | green }}",
 			Details: `
 {{ if eq .Type "bookmark" }}{{ if .Bookmark }}
---------- Bookmark Details ----------
-Title: {{ .Bookmark.Title }}
-URL:   {{ .Bookmark.URL }}
-{{ if .Bookmark.Description }}Description: {{ .Bookmark.Description }}{{ end }}
+{{ "--------- Bookmark Details ----------" | faint }}
+{{ "Title:" | yellow }} {{ .Bookmark.Title | white }}
+{{ "URL:" | yellow }}   {{ .Bookmark.URL | white }}
+{{ if .Bookmark.Description }}{{ "Description:" | yellow }} {{ .Bookmark.Description | white }}{{ end }}
 {{ end }}{{ end }}`,
 		}
 

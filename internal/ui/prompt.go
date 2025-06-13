@@ -14,10 +14,10 @@ func PromptString(label string, defaultValue string) (string, error) {
 		Label:   label,
 		Default: defaultValue,
 		Templates: &promptui.PromptTemplates{
-			Prompt:  "{{ . }} ",
-			Valid:   "{{ . | bold }} ",
-			Invalid: "{{ . | bold }} ",
-			Success: "{{ . | bold }} ",
+			Prompt:  "{{ . | cyan | bold }}: ",
+			Valid:   "{{ . | green | bold }}: ",
+			Invalid: "{{ . | red | bold }}: ",
+			Success: "{{ . | bold | green }}: ",
 		},
 	}
 	result, err := prompt.Run()
@@ -41,10 +41,10 @@ func PromptURL(defaultValue string) (string, error) {
 			return nil
 		},
 		Templates: &promptui.PromptTemplates{
-			Prompt:  "{{ . }} ",
-			Valid:   "{{ . | bold }} ",
-			Invalid: "{{ . | bold }} ",
-			Success: "{{ . | bold }} ",
+			Prompt:  "{{ . | cyan | bold }}: ",
+			Valid:   "{{ . | green | bold }}: ",
+			Invalid: "{{ . | red | bold }}: ",
+			Success: "{{ . | bold | green }}: ",
 		},
 	}
 	result, err := prompt.Run()
@@ -106,10 +106,10 @@ func SelectCategory(categoryTree *category.Node, currentPath string) (string, er
 		}
 
 		templates := &promptui.SelectTemplates{
-			Label:    "{{ . }}",
-			Active:   "▶ {{ .Display }}",
-			Inactive: "  {{ .Display }}",
-			Selected: "{{ .Display }}",
+			Label:    "{{ . | cyan | bold }}",
+			Active:   "{{ \"▶\" | cyan | bold }} {{ .Display | cyan }}",
+			Inactive: "  {{ .Display | faint }}",
+			Selected: "{{ \"✔\" | green | bold }} {{ .Display | green }}",
 		}
 
 		searcher := func(input string, index int) bool {
@@ -230,10 +230,10 @@ func SelectBookmark(bookmarks []*bookmark.Bookmark, label string) (*bookmark.Boo
 	}
 
 	templates := &promptui.SelectTemplates{
-		Label:    "{{ . }}",
-		Active:   "▶ {{ .Display }}",
-		Inactive: "  {{ .Display }}",
-		Selected: "{{ .Display }}",
+		Label:    "{{ . | cyan | bold }}",
+		Active:   "{{ \"▶\" | cyan | bold }} {{ .Display | cyan }}",
+		Inactive: "  {{ .Display | faint }}",
+		Selected: "{{ \"✔\" | green | bold }} {{ .Display | green }}",
 	}
 
 	searcher := func(input string, index int) bool {
