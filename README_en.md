@@ -32,19 +32,13 @@ go build -o ubm ./cmd/ubm
 ### Add Bookmarks
 
 ```bash
-# Add interactively
+# Add interactively (prompts for URL, title, and category)
 ubm add
-
-# Add with URL
-ubm add https://golang.org
-
-# Add with URL and title
-ubm add https://golang.org "Go Programming Language"
 ```
 
 When adding a bookmark, you'll see:
-1. URL prompt (if not provided)
-2. Title prompt (if not provided)
+1. URL prompt
+2. Title prompt (with auto-suggested domain name)
 3. Category selection screen where you can:
    - Navigate existing categories with arrow keys
    - Create new categories by selecting "➕ Create new category"
@@ -53,7 +47,7 @@ When adding a bookmark, you'll see:
 ### Browse Bookmarks
 
 ```bash
-# Interactive navigation
+# Interactive navigation (opens selected bookmark in browser and exits)
 ubm list
 
 # Show all in tree format

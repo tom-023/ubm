@@ -34,20 +34,14 @@ go build -o ubm ./cmd/ubm
 ### ブックマークの追加
 
 ```bash
-# 対話的に追加
+# 対話的に追加（URL、タイトル、カテゴリを順番に入力）
 ubm add
-
-# URLを指定して追加
-ubm add https://golang.org
-
-# URLとタイトルを指定して追加
-ubm add https://golang.org "Go Programming Language"
 ```
 
 ### ブックマークの閲覧
 
 ```bash
-# 対話的なナビゲーション
+# 対話的なナビゲーション（ブックマークを選択するとブラウザで開いて終了）
 ubm list
 
 # ツリー形式で全体を表示

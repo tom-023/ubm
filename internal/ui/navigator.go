@@ -124,9 +124,7 @@ URL:   {{ .Bookmark.URL }}
 				fmt.Printf("Error opening browser: %v\n", err)
 				fmt.Printf("Please open manually: %s\n", selected.Bookmark.URL)
 			}
-			fmt.Println("\nPress Enter to continue...")
-			fmt.Scanln()
-			return navigateRecursive(node, path)
+			return nil // Exit after opening browser
 		}
 
 		return nil

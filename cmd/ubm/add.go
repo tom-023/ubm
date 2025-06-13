@@ -12,27 +12,20 @@ import (
 )
 
 func addCmd() *cobra.Command {
-	var title string
-
 	cmd := &cobra.Command{
-		Use:   "add [URL] [TITLE]",
-		Short: "Add a new URL bookmark with interactive category selection",
-		Long: `Add a new URL bookmark to your collection.
-If URL is not provided, you will be prompted to enter it.
-Title can be provided as an argument or via the --title flag.`,
-		Args: cobra.MaximumNArgs(2),
+		Use:   "add",
+		Short: "Add a new URL bookmark interactively",
+		Long:  `Add a new URL bookmark to your collection through interactive prompts.`,
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var url string
+			var title string
 			var err error
 
 			// Get URL
-			if len(args) > 0 {
-				url = args[0]
-			} else {
-				url, err = ui.PromptURL("")
-				if err != nil {
-					return fmt.Errorf("failed to get URL: %w", err)
-				}
+			url, err = ui.PromptURL("")
+			if err != nil {
+				return fmt.Errorf("failed to get URL: %w", err)
 			}
 
 			// Normalize and validate URL
@@ -42,14 +35,10 @@ Title can be provided as an argument or via the --title flag.`,
 			}
 
 			// Get title
-			if len(args) > 1 {
-				title = args[1]
-			} else if title == "" {
-				// TODO: Auto-detect title from URL
-				title, err = ui.PromptString("Title", extractDomainFromURL(url))
-				if err != nil {
-					return fmt.Errorf("failed to get title: %w", err)
-				}
+			// TODO: Auto-detect title from URL
+			title, err = ui.PromptString("Title", extractDomainFromURL(url))
+			if err != nil {
+				return fmt.Errorf("failed to get title: %w", err)
 			}
 
 			// Load existing data for category selection
@@ -102,8 +91,6 @@ Title can be provided as an argument or via the --title flag.`,
 			return nil
 		},
 	}
-
-	cmd.Flags().StringVarP(&title, "title", "t", "", "Custom title for the bookmark")
 
 	return cmd
 }
