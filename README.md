@@ -1,5 +1,7 @@
 # ubm - URL Bookmark Manager
 
+[English](./README_en.md) | 日本語
+
 ubm (URL Bookmark Manager) は、ツリー構造でブックマークを整理できる対話的なコマンドラインツールです。
 
 ## 機能
