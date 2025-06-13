@@ -13,8 +13,21 @@ func PromptString(label string, defaultValue string) (string, error) {
 	prompt := promptui.Prompt{
 		Label:   label,
 		Default: defaultValue,
+		Templates: &promptui.PromptTemplates{
+			Prompt:  "{{ . }} ",
+			Valid:   "{{ . | bold }} ",
+			Invalid: "{{ . | bold }} ",
+			Success: "{{ . | bold }} ",
+		},
 	}
-	return prompt.Run()
+	result, err := prompt.Run()
+	if err != nil {
+		if err == promptui.ErrInterrupt || err == promptui.ErrEOF {
+			return "", fmt.Errorf("cancelled")
+		}
+		return "", err
+	}
+	return result, nil
 }
 
 func PromptURL(defaultValue string) (string, error) {
@@ -27,8 +40,21 @@ func PromptURL(defaultValue string) (string, error) {
 			}
 			return nil
 		},
+		Templates: &promptui.PromptTemplates{
+			Prompt:  "{{ . }} ",
+			Valid:   "{{ . | bold }} ",
+			Invalid: "{{ . | bold }} ",
+			Success: "{{ . | bold }} ",
+		},
 	}
-	return prompt.Run()
+	result, err := prompt.Run()
+	if err != nil {
+		if err == promptui.ErrInterrupt || err == promptui.ErrEOF {
+			return "", fmt.Errorf("cancelled")
+		}
+		return "", err
+	}
+	return result, nil
 }
 
 func SelectCategory(categoryTree *category.Node, currentPath string) (string, error) {
@@ -103,6 +129,9 @@ func SelectCategory(categoryTree *category.Node, currentPath string) (string, er
 
 		i, _, err := prompt.Run()
 		if err != nil {
+			if err == promptui.ErrInterrupt || err == promptui.ErrEOF {
+				return "", fmt.Errorf("cancelled")
+			}
 			return "", err
 		}
 

@@ -25,6 +25,10 @@ func addCmd() *cobra.Command {
 			// Get URL
 			url, err = ui.PromptURL("")
 			if err != nil {
+				if err.Error() == "cancelled" {
+					fmt.Println("\nCancelled.")
+					return nil
+				}
 				return fmt.Errorf("failed to get URL: %w", err)
 			}
 
@@ -38,6 +42,10 @@ func addCmd() *cobra.Command {
 			// TODO: Auto-detect title from URL
 			title, err = ui.PromptString("Title", extractDomainFromURL(url))
 			if err != nil {
+				if err.Error() == "cancelled" {
+					fmt.Println("\nCancelled.")
+					return nil
+				}
 				return fmt.Errorf("failed to get title: %w", err)
 			}
 
@@ -58,6 +66,10 @@ func addCmd() *cobra.Command {
 			// Select category
 			selectedCategory, err := ui.SelectCategory(categoryTree, "")
 			if err != nil {
+				if err.Error() == "cancelled" {
+					fmt.Println("\nCancelled.")
+					return nil
+				}
 				return fmt.Errorf("failed to select category: %w", err)
 			}
 
