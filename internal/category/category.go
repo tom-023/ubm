@@ -77,7 +77,7 @@ func (m *Manager) addCategory(categoryPath string, count int) {
 		if currentPath == "" {
 			currentPath = part
 		} else {
-			currentPath = path.Join(currentPath, part)
+			currentPath = currentPath + "/" + part
 		}
 
 		// Check if this part already exists

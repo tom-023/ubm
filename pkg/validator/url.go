@@ -47,6 +47,11 @@ func NormalizeURL(rawURL string) (string, error) {
 	// Trim whitespace
 	rawURL = strings.TrimSpace(rawURL)
 
+	// Check for empty URL after trimming
+	if rawURL == "" {
+		return "", fmt.Errorf("URL cannot be empty")
+	}
+
 	// If no scheme, add https://
 	if !strings.Contains(rawURL, "://") {
 		rawURL = "https://" + rawURL
