@@ -83,8 +83,8 @@ ubm category delete
 ### Edit Bookmarks
 
 ```bash
-# Edit interactively
-ubm edit
+# Edit by title
+ubm edit "bookmark title"
 
 # Move to different category
 ubm move

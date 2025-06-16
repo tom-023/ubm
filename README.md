@@ -77,8 +77,8 @@ ubm category delete
 ### ブックマークの編集
 
 ```bash
-# 対話的に編集
-ubm edit
+# タイトルを指定して編集
+ubm edit "ブックマークのタイトル"
 
 # ブックマークを別のカテゴリに移動
 ubm move
