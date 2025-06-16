@@ -18,7 +18,11 @@ type NavigationItem struct {
 	Node     *category.Node
 }
 
-func NavigateBookmarks(categoryTree *category.Node, bookmarks []*bookmark.Bookmark) error {
+// BookmarkAction defines what to do when a bookmark is selected
+type BookmarkAction func(*bookmark.Bookmark) error
+
+// navigateWithAction is the common navigation function
+func navigateWithAction(categoryTree *category.Node, bookmarks []*bookmark.Bookmark, label string, action BookmarkAction) error {
 	var navigateRecursive func(node *category.Node, path string) error
 	navigateRecursive = func(node *category.Node, path string) error {
 		items := []NavigationItem{}
@@ -85,8 +89,15 @@ func NavigateBookmarks(categoryTree *category.Node, bookmarks []*bookmark.Bookma
 			return strings.Contains(searchText, input)
 		}
 
+		promptLabel := label
+		if label == "" {
+			promptLabel = formatNavigationPath(path)
+		} else {
+			promptLabel = fmt.Sprintf("%s - %s", label, formatNavigationPath(path))
+		}
+
 		prompt := promptui.Select{
-			Label:     formatNavigationPath(path),
+			Label:     promptLabel,
 			Items:     items,
 			Templates: templates,
 			Searcher:  searcher,
@@ -95,8 +106,8 @@ func NavigateBookmarks(categoryTree *category.Node, bookmarks []*bookmark.Bookma
 
 		i, _, err := prompt.Run()
 		if err != nil {
-			if err == promptui.ErrInterrupt {
-				return nil
+			if err == promptui.ErrInterrupt || err == promptui.ErrEOF {
+				return fmt.Errorf("cancelled")
 			}
 			return err
 		}
@@ -118,13 +129,11 @@ func NavigateBookmarks(categoryTree *category.Node, bookmarks []*bookmark.Bookma
 			return navigateRecursive(selected.Node, selected.Path)
 
 		case "bookmark":
-			// Open bookmark
-			fmt.Printf("\nOpening: %s\n", selected.Bookmark.URL)
-			if err := browser.OpenURL(selected.Bookmark.URL); err != nil {
-				fmt.Printf("Error opening browser: %v\n", err)
-				fmt.Printf("Please open manually: %s\n", selected.Bookmark.URL)
+			// Execute the action on the selected bookmark
+			if action != nil {
+				return action(selected.Bookmark)
 			}
-			return nil // Exit after opening browser
+			return nil
 		}
 
 		return nil
@@ -133,9 +142,34 @@ func NavigateBookmarks(categoryTree *category.Node, bookmarks []*bookmark.Bookma
 	return navigateRecursive(categoryTree, "")
 }
 
+// NavigateBookmarks opens the selected bookmark in browser
+func NavigateBookmarks(categoryTree *category.Node, bookmarks []*bookmark.Bookmark) error {
+	return navigateWithAction(categoryTree, bookmarks, "", func(b *bookmark.Bookmark) error {
+		fmt.Printf("\nOpening: %s\n", b.URL)
+		if err := browser.OpenURL(b.URL); err != nil {
+			fmt.Printf("Error opening browser: %v\n", err)
+			fmt.Printf("Please open manually: %s\n", b.URL)
+		}
+		return nil
+	})
+}
+
 func formatNavigationPath(path string) string {
 	if path == "" {
 		return "📚 Bookmarks"
 	}
 	return fmt.Sprintf("📚 Bookmarks > %s", strings.ReplaceAll(path, "/", " > "))
+}
+
+// NavigateAndSelectBookmark allows navigating through categories to select a bookmark
+func NavigateAndSelectBookmark(categoryTree *category.Node, bookmarks []*bookmark.Bookmark, prompt string) (*bookmark.Bookmark, error) {
+	var selectedBookmark *bookmark.Bookmark
+	err := navigateWithAction(categoryTree, bookmarks, prompt, func(b *bookmark.Bookmark) error {
+		selectedBookmark = b
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return selectedBookmark, nil
 }

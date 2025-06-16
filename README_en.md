@@ -75,8 +75,14 @@ ubm category delete
 # Edit by title
 ubm edit "bookmark title"
 
-# Move to different category by title
+# Edit interactively
+ubm edit
+
+# Move by title
 ubm move "bookmark title"
+
+# Move interactively
+ubm move
 
 # Delete bookmark
 ubm delete

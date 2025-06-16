@@ -12,14 +12,14 @@ import (
 
 func moveCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "move <title>",
-		Short: "Move bookmark to different category by title",
-		Long: `Move a bookmark to a different category by specifying its title.
+		Use:   "move [title]",
+		Short: "Move bookmark to different category",
+		Long: `Move a bookmark to a different category by specifying its title or selecting it interactively.
 
 Examples:
   ubm move "GitHub"
-  ubm move "Google Search"`,
-		Args: cobra.ExactArgs(1),
+  ubm move`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Load data
 			data, err := store.Load()
@@ -32,41 +32,63 @@ Examples:
 				return nil
 			}
 
-			// Find bookmark by title (exact match first, then partial match)
-			targetTitle := args[0]
 			var targetBookmark *bookmark.Bookmark
-			var candidates []*bookmark.Bookmark
 
-			// First, try exact match
-			for _, b := range data.Bookmarks {
-				if b.Title == targetTitle {
-					targetBookmark = b
-					break
-				}
-			}
+			if len(args) > 0 {
+				// Find bookmark by title (exact match first, then partial match)
+				targetTitle := args[0]
+				var candidates []*bookmark.Bookmark
 
-			// If no exact match, find partial matches
-			if targetBookmark == nil {
+				// First, try exact match
 				for _, b := range data.Bookmarks {
-					if strings.Contains(strings.ToLower(b.Title), strings.ToLower(targetTitle)) {
-						candidates = append(candidates, b)
+					if b.Title == targetTitle {
+						targetBookmark = b
+						break
 					}
 				}
 
-				if len(candidates) == 0 {
-					return fmt.Errorf("no bookmark found matching '%s'", targetTitle)
-				} else if len(candidates) == 1 {
-					targetBookmark = candidates[0]
-				} else {
-					// Multiple matches found, let user select
-					targetBookmark, err = ui.SelectBookmark(candidates, fmt.Sprintf("Multiple bookmarks found for '%s'. Select one:", targetTitle))
-					if err != nil {
-						if err.Error() == "cancelled" {
-							fmt.Println("Cancelled.")
-							return nil
+				// If no exact match, find partial matches
+				if targetBookmark == nil {
+					for _, b := range data.Bookmarks {
+						if strings.Contains(strings.ToLower(b.Title), strings.ToLower(targetTitle)) {
+							candidates = append(candidates, b)
 						}
-						return err
 					}
+
+					if len(candidates) == 0 {
+						return fmt.Errorf("no bookmark found matching '%s'", targetTitle)
+					} else if len(candidates) == 1 {
+						targetBookmark = candidates[0]
+					} else {
+						// Multiple matches found, let user select
+						targetBookmark, err = ui.SelectBookmark(candidates, fmt.Sprintf("Multiple bookmarks found for '%s'. Select one:", targetTitle))
+						if err != nil {
+							if err.Error() == "cancelled" {
+								fmt.Println("Cancelled.")
+								return nil
+							}
+							return err
+						}
+					}
+				}
+			} else {
+				// Interactive navigation
+				// Build category tree
+				catManager := category.NewManager()
+				bookmarkCounts := make(map[string]int)
+				for _, b := range data.Bookmarks {
+					bookmarkCounts[b.Category]++
+				}
+				categoryTree := catManager.BuildTree(data.Categories, bookmarkCounts)
+
+				// Navigate and select bookmark
+				targetBookmark, err = ui.NavigateAndSelectBookmark(categoryTree, data.Bookmarks, "Select bookmark to move")
+				if err != nil {
+					if err.Error() == "cancelled" {
+						fmt.Println("Cancelled.")
+						return nil
+					}
+					return err
 				}
 			}
 
