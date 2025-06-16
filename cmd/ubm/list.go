@@ -37,6 +37,10 @@ Use arrow keys to navigate, Enter to select, and q to quit.`,
 
 			// Start interactive navigation
 			if err := ui.NavigateBookmarks(categoryTree, data.Bookmarks); err != nil {
+				if err.Error() == "cancelled" {
+					fmt.Println("Cancelled.")
+					return nil
+				}
 				return fmt.Errorf("navigation error: %w", err)
 			}
 
