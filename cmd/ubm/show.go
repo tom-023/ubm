@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"sort"
 
 	"github.com/spf13/cobra"
 	"github.com/tom-023/ubm/internal/bookmark"
@@ -10,9 +9,7 @@ import (
 )
 
 func showCmd() *cobra.Command {
-	var flat bool
-
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:   "show",
 		Short: "Display all bookmarks in tree format",
 		Long:  `Display all bookmarks organized by their categories in a tree structure.`,
@@ -28,43 +25,11 @@ func showCmd() *cobra.Command {
 				return nil
 			}
 
-			if flat {
-				// Display flat list
-				displayFlatList(data.Bookmarks)
-			} else {
-				// Display tree structure
-				displayTree(data.Bookmarks, data.Categories)
-			}
+			// Display tree structure
+			displayTree(data.Bookmarks, data.Categories)
 
 			return nil
 		},
-	}
-
-	cmd.Flags().BoolVarP(&flat, "flat", "f", false, "Show flat list instead of tree")
-
-	return cmd
-}
-
-func displayFlatList(bookmarks []*bookmark.Bookmark) {
-	// Sort by category, then by title
-	sort.Slice(bookmarks, func(i, j int) bool {
-		if bookmarks[i].Category == bookmarks[j].Category {
-			return bookmarks[i].Title < bookmarks[j].Title
-		}
-		return bookmarks[i].Category < bookmarks[j].Category
-	})
-
-	currentCategory := ""
-	for _, b := range bookmarks {
-		if b.Category != currentCategory {
-			currentCategory = b.Category
-			if currentCategory == "" {
-				fmt.Println("\n📁 uncategorized:")
-			} else {
-				fmt.Printf("\n📁 %s:\n", currentCategory)
-			}
-		}
-		fmt.Printf("  🔗 %s - %s\n", b.Title, b.URL)
 	}
 }
 

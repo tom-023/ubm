@@ -45,9 +45,6 @@ ubm list
 
 # ツリー形式で全体を表示
 ubm show
-
-# フラットリストで表示
-ubm show --flat
 ```
 
 ### カテゴリ管理
@@ -66,14 +63,8 @@ ubm category delete
 ### ブックマークの編集
 
 ```bash
-# タイトルを指定して編集
-ubm edit "ブックマークのタイトル"
-
 # 対話的に選択して編集
 ubm edit
-
-# タイトルを指定して移動
-ubm move "ブックマークのタイトル"
 
 # 対話的に選択して移動
 ubm move

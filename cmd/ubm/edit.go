@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/tom-023/ubm/internal/bookmark"
 	"github.com/tom-023/ubm/internal/category"
 	"github.com/tom-023/ubm/internal/ui"
 	"github.com/tom-023/ubm/pkg/validator"
@@ -13,14 +11,9 @@ import (
 
 func editCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "edit [title]",
+		Use:   "edit",
 		Short: "Edit existing bookmark",
-		Long: `Edit a bookmark by specifying its title or selecting it interactively.
-
-Examples:
-  ubm edit "GitHub"
-  ubm edit`,
-		Args: cobra.MaximumNArgs(1),
+		Long:  `Interactively select a bookmark and edit its title or URL.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Load data
 			data, err := store.Load()
@@ -33,64 +26,22 @@ Examples:
 				return nil
 			}
 
-			var targetBookmark *bookmark.Bookmark
+			// Build category tree
+			catManager := category.NewManager()
+			bookmarkCounts := make(map[string]int)
+			for _, b := range data.Bookmarks {
+				bookmarkCounts[b.Category]++
+			}
+			categoryTree := catManager.BuildTree(data.Categories, bookmarkCounts)
 
-			if len(args) > 0 {
-				// Find bookmark by title (exact match first, then partial match)
-				targetTitle := args[0]
-				var candidates []*bookmark.Bookmark
-
-				// First, try exact match
-				for _, b := range data.Bookmarks {
-					if b.Title == targetTitle {
-						targetBookmark = b
-						break
-					}
+			// Navigate and select bookmark
+			targetBookmark, err := ui.NavigateAndSelectBookmark(categoryTree, data.Bookmarks, "Select bookmark to edit")
+			if err != nil {
+				if err.Error() == "cancelled" {
+					fmt.Println("Cancelled.")
+					return nil
 				}
-
-				// If no exact match, find partial matches
-				if targetBookmark == nil {
-					for _, b := range data.Bookmarks {
-						if strings.Contains(strings.ToLower(b.Title), strings.ToLower(targetTitle)) {
-							candidates = append(candidates, b)
-						}
-					}
-
-					if len(candidates) == 0 {
-						return fmt.Errorf("no bookmark found matching '%s'", targetTitle)
-					} else if len(candidates) == 1 {
-						targetBookmark = candidates[0]
-					} else {
-						// Multiple matches found, let user select
-						targetBookmark, err = ui.SelectBookmark(candidates, fmt.Sprintf("Multiple bookmarks found for '%s'. Select one:", targetTitle))
-						if err != nil {
-							if err.Error() == "cancelled" {
-								fmt.Println("Cancelled.")
-								return nil
-							}
-							return err
-						}
-					}
-				}
-			} else {
-				// Interactive navigation
-				// Build category tree
-				catManager := category.NewManager()
-				bookmarkCounts := make(map[string]int)
-				for _, b := range data.Bookmarks {
-					bookmarkCounts[b.Category]++
-				}
-				categoryTree := catManager.BuildTree(data.Categories, bookmarkCounts)
-
-				// Navigate and select bookmark
-				targetBookmark, err = ui.NavigateAndSelectBookmark(categoryTree, data.Bookmarks, "Select bookmark to edit")
-				if err != nil {
-					if err.Error() == "cancelled" {
-						fmt.Println("Cancelled.")
-						return nil
-					}
-					return err
-				}
+				return err
 			}
 
 			// Select what to edit

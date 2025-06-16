@@ -51,9 +51,6 @@ ubm list
 
 # Show all in tree format
 ubm show
-
-# Show in flat list
-ubm show --flat
 ```
 
 ### Category Management
@@ -72,14 +69,8 @@ ubm category delete
 ### Edit Bookmarks
 
 ```bash
-# Edit by title
-ubm edit "bookmark title"
-
 # Edit interactively
 ubm edit
-
-# Move by title
-ubm move "bookmark title"
 
 # Move interactively
 ubm move
