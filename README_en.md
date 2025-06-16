@@ -7,7 +7,6 @@ ubm (URL Bookmark Manager) is an interactive command-line tool that allows you t
 - 📁 **Hierarchical Category Management**: Organize bookmarks in a tree structure
 - 🔍 **Interactive Navigation**: Easy bookmark exploration with arrow keys
 - 🌐 **Browser Integration**: Automatically open selected bookmarks in browser
-- 🔎 **Search Function**: Search bookmarks by title or URL
 - ✏️ **Edit Function**: Edit bookmark information later
 - 📂 **Move Between Categories**: Move bookmarks to different categories
 
@@ -55,16 +54,6 @@ ubm show
 
 # Show in flat list
 ubm show --flat
-```
-
-### Search Bookmarks
-
-```bash
-# Search by keyword
-ubm search golang
-
-# Search within category
-ubm search golang --category programming
 ```
 
 ### Category Management

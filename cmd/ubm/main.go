@@ -43,7 +43,6 @@ It allows you to organize your bookmarks in a tree-like structure and access the
 	rootCmd.AddCommand(
 		addCmd(),
 		listCmd(),
-		searchCmd(),
 		showCmd(),
 		categoryCmd(),
 		moveCmd(),
