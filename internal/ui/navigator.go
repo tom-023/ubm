@@ -90,7 +90,7 @@ func navigateWithAction(categoryTree *category.Node, bookmarks []*bookmark.Bookm
 		})
 
 		promptLabel := label
-		if label == "" {
+		if promptLabel == "" {
 			promptLabel = formatNavigationPath(path)
 		} else {
 			promptLabel = fmt.Sprintf("%s - %s", label, formatNavigationPath(path))
