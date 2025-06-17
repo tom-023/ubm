@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/tom-023/ubm/internal/category"
 	"github.com/tom-023/ubm/internal/ui"
 )
 
@@ -26,17 +25,12 @@ func moveCmd() *cobra.Command {
 			}
 
 			// Build category tree
-			catManager := category.NewManager()
-			bookmarkCounts := make(map[string]int)
-			for _, b := range data.Bookmarks {
-				bookmarkCounts[b.Category]++
-			}
-			categoryTree := catManager.BuildTree(data.Categories, bookmarkCounts)
+			categoryTree := ui.BuildCategoryTree(data)
 
 			// Navigate and select bookmark
 			targetBookmark, err := ui.NavigateAndSelectBookmark(categoryTree, data.Bookmarks, "Select bookmark to move")
 			if err != nil {
-				if err.Error() == "cancelled" {
+				if ui.IsCancelError(err) {
 					fmt.Println("Cancelled.")
 					return nil
 				}
@@ -48,12 +42,12 @@ func moveCmd() *cobra.Command {
 
 			// Display current category
 			fmt.Printf("\nMoving bookmark: %s\n", targetBookmark.Title)
-			fmt.Printf("Current category: %s\n", formatCategory(originalCategory))
+			fmt.Printf("Current category: %s\n", ui.FormatCategory(originalCategory))
 
 			// Select new category
 			newCategory, err := ui.SelectCategory(categoryTree, originalCategory)
 			if err != nil {
-				if err.Error() == "cancelled" {
+				if ui.IsCancelError(err) {
 					fmt.Println("Cancelled.")
 					return nil
 				}
@@ -95,8 +89,8 @@ func moveCmd() *cobra.Command {
 
 			fmt.Printf("\n✅ Bookmark moved successfully!\n")
 			fmt.Printf("Title: %s\n", targetBookmark.Title)
-			fmt.Printf("From: %s\n", formatCategory(originalCategory))
-			fmt.Printf("To: %s\n", formatCategory(newCategory))
+			fmt.Printf("From: %s\n", ui.FormatCategory(originalCategory))
+			fmt.Printf("To: %s\n", ui.FormatCategory(newCategory))
 
 			return nil
 		},

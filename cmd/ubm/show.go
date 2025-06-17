@@ -6,6 +6,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tom-023/ubm/internal/bookmark"
 	"github.com/tom-023/ubm/internal/category"
+	"github.com/tom-023/ubm/internal/storage"
+	"github.com/tom-023/ubm/internal/ui"
 )
 
 func showCmd() *cobra.Command {
@@ -26,25 +28,20 @@ func showCmd() *cobra.Command {
 			}
 
 			// Display tree structure
-			displayTree(data.Bookmarks, data.Categories)
+			displayTree(data)
 
 			return nil
 		},
 	}
 }
 
-func displayTree(bookmarks []*bookmark.Bookmark, categories []string) {
+func displayTree(data *storage.Data) {
 	// Build category tree
-	catManager := category.NewManager()
-	bookmarkCounts := make(map[string]int)
-	for _, b := range bookmarks {
-		bookmarkCounts[b.Category]++
-	}
-	tree := catManager.BuildTree(categories, bookmarkCounts)
+	tree := ui.BuildCategoryTree(data)
 
 	// Group bookmarks by category
 	bookmarksByCategory := make(map[string][]*bookmark.Bookmark)
-	for _, b := range bookmarks {
+	for _, b := range data.Bookmarks {
 		bookmarksByCategory[b.Category] = append(bookmarksByCategory[b.Category], b)
 	}
 

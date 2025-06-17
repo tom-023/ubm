@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/tom-023/ubm/internal/category"
 	"github.com/tom-023/ubm/internal/ui"
 )
 
@@ -28,16 +27,11 @@ Use arrow keys to navigate, Enter to select, and q to quit.`,
 			}
 
 			// Build category tree
-			catManager := category.NewManager()
-			bookmarkCounts := make(map[string]int)
-			for _, b := range data.Bookmarks {
-				bookmarkCounts[b.Category]++
-			}
-			categoryTree := catManager.BuildTree(data.Categories, bookmarkCounts)
+			categoryTree := ui.BuildCategoryTree(data)
 
 			// Start interactive navigation
 			if err := ui.NavigateBookmarks(categoryTree, data.Bookmarks); err != nil {
-				if err.Error() == "cancelled" {
+				if ui.IsCancelError(err) {
 					fmt.Println("Cancelled.")
 					return nil
 				}

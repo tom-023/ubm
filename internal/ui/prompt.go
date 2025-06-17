@@ -11,21 +11,13 @@ import (
 
 func PromptString(label string, defaultValue string) (string, error) {
 	prompt := promptui.Prompt{
-		Label:   label,
-		Default: defaultValue,
-		Templates: &promptui.PromptTemplates{
-			Prompt:  "{{ . | cyan | bold }}: ",
-			Valid:   "{{ . | green | bold }}: ",
-			Invalid: "{{ . | red | bold }}: ",
-			Success: "{{ . | bold | green }}: ",
-		},
+		Label:     label,
+		Default:   defaultValue,
+		Templates: StandardPromptTemplates,
 	}
 	result, err := prompt.Run()
 	if err != nil {
-		if err == promptui.ErrInterrupt || err == promptui.ErrEOF {
-			return "", fmt.Errorf("cancelled")
-		}
-		return "", err
+		return "", WrapCancelError(err)
 	}
 	return result, nil
 }
@@ -44,19 +36,11 @@ func PromptURLWithLabel(label string, defaultValue string) (string, error) {
 			}
 			return nil
 		},
-		Templates: &promptui.PromptTemplates{
-			Prompt:  "{{ . | cyan | bold }}: ",
-			Valid:   "{{ . | green | bold }}: ",
-			Invalid: "{{ . | red | bold }}: ",
-			Success: "{{ . | bold | green }}: ",
-		},
+		Templates: StandardPromptTemplates,
 	}
 	result, err := prompt.Run()
 	if err != nil {
-		if err == promptui.ErrInterrupt || err == promptui.ErrEOF {
-			return "", fmt.Errorf("cancelled")
-		}
-		return "", err
+		return "", WrapCancelError(err)
 	}
 	return result, nil
 }
@@ -109,39 +93,24 @@ func SelectCategory(categoryTree *category.Node, currentPath string) (string, er
 			})
 		}
 
-		templates := &promptui.SelectTemplates{
-			Label:    "{{ . | cyan | bold }}",
-			Active:   "{{ \"▶\" | cyan | bold }} {{ .Display | cyan }}",
-			Inactive: "  {{ .Display | faint }}",
-			Selected: "{{ \"✔\" | green | bold }} {{ .Display | green }}",
-		}
+		searcher := CreateSearcher(func(index int) string {
+			return items[index].Display
+		})
 
-		searcher := func(input string, index int) bool {
-			item := items[index]
-			name := strings.Replace(strings.ToLower(item.Display), " ", "", -1)
-			input = strings.Replace(strings.ToLower(input), " ", "", -1)
-			return strings.Contains(name, input)
-		}
-
-		// Workaround for promptui scrolling bug
-		size := 10
-		if len(items) < size {
-			size = len(items)
-		}
 
 		prompt := promptui.Select{
 			Label:     fmt.Sprintf("Select Category (current: %s)", formatPath(parentPath)),
 			Items:     items,
-			Templates: templates,
+			Templates: ItemSelectTemplates,
 			Searcher:  searcher,
-			Size:      size,
+			Size:      GetSelectSize(len(items)),
 			HideHelp:  true,
 		}
 
 		i, _, err := prompt.Run()
 		if err != nil {
-			if err == promptui.ErrInterrupt || err == promptui.ErrEOF {
-				return "", fmt.Errorf("cancelled")
+			if IsCancelError(err) {
+				return "", ErrCancelled
 			}
 			return "", err
 		}
@@ -240,33 +209,18 @@ func SelectBookmark(bookmarks []*bookmark.Bookmark, label string) (*bookmark.Boo
 		})
 	}
 
-	templates := &promptui.SelectTemplates{
-		Label:    "{{ . | cyan | bold }}",
-		Active:   "{{ \"▶\" | cyan | bold }} {{ .Display | cyan }}",
-		Inactive: "  {{ .Display | faint }}",
-		Selected: "{{ \"✔\" | green | bold }} {{ .Display | green }}",
-	}
 
-	searcher := func(input string, index int) bool {
+	searcher := CreateSearcher(func(index int) string {
 		item := items[index]
-		searchText := strings.ToLower(item.Bookmark.Title + " " + item.Bookmark.URL + " " + item.Bookmark.Category)
-		input = strings.ToLower(input)
-		return strings.Contains(searchText, input)
-	}
-
-	// Workaround for promptui scrolling bug
-	// Set Size to be at least the number of items to prevent scrolling issues
-	size := 10
-	if len(items) < size {
-		size = len(items)
-	}
+		return item.Bookmark.Title + " " + item.Bookmark.URL + " " + item.Bookmark.Category
+	})
 
 	prompt := promptui.Select{
 		Label:     label,
 		Items:     items,
-		Templates: templates,
+		Templates: ItemSelectTemplates,
 		Searcher:  searcher,
-		Size:      size,
+		Size:      GetSelectSize(len(items)),
 		HideHelp:  true,
 	}
 
@@ -281,25 +235,18 @@ func SelectBookmark(bookmarks []*bookmark.Bookmark, label string) (*bookmark.Boo
 func Confirm(message string) (bool, error) {
 	// Use Select instead of Prompt with IsConfirm for better color control
 	items := []string{"Yes", "No"}
-	templates := &promptui.SelectTemplates{
-		Label:    "{{ . | cyan | bold }}",
-		Active:   "▸ {{ . | cyan }}",
-		Inactive: "  {{ . | faint }}",
-		Selected: "{{ . | green | bold }}",
-	}
-
 	prompt := promptui.Select{
 		Label:     message,
 		Items:     items,
-		Templates: templates,
+		Templates: StandardSelectTemplates,
 		Size:      2,
 		HideHelp:  true,
 	}
 
 	i, _, err := prompt.Run()
 	if err != nil {
-		if err == promptui.ErrInterrupt || err == promptui.ErrEOF {
-			return false, fmt.Errorf("cancelled")
+		if IsCancelError(err) {
+			return false, ErrCancelled
 		}
 		return false, err
 	}
@@ -313,17 +260,10 @@ func SelectEditField() (string, error) {
 		"URL",
 	}
 
-	templates := &promptui.SelectTemplates{
-		Label:    "{{ . | cyan | bold }}",
-		Active:   "▸ {{ . | cyan }}",
-		Inactive: "  {{ . | faint }}",
-		Selected: "{{ . | green | bold }}",
-	}
-
 	prompt := promptui.Select{
 		Label:     "What would you like to edit?",
 		Items:     fields,
-		Templates: templates,
+		Templates: StandardSelectTemplates,
 		Size:      2,
 		HideHelp:  true,
 	}

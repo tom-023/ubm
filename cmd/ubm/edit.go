@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/tom-023/ubm/internal/category"
 	"github.com/tom-023/ubm/internal/ui"
 	"github.com/tom-023/ubm/pkg/validator"
 )
@@ -27,17 +26,12 @@ func editCmd() *cobra.Command {
 			}
 
 			// Build category tree
-			catManager := category.NewManager()
-			bookmarkCounts := make(map[string]int)
-			for _, b := range data.Bookmarks {
-				bookmarkCounts[b.Category]++
-			}
-			categoryTree := catManager.BuildTree(data.Categories, bookmarkCounts)
+			categoryTree := ui.BuildCategoryTree(data)
 
 			// Navigate and select bookmark
 			targetBookmark, err := ui.NavigateAndSelectBookmark(categoryTree, data.Bookmarks, "Select bookmark to edit")
 			if err != nil {
-				if err.Error() == "cancelled" {
+				if ui.IsCancelError(err) {
 					fmt.Println("Cancelled.")
 					return nil
 				}
@@ -47,7 +41,7 @@ func editCmd() *cobra.Command {
 			// Select what to edit
 			field, err := ui.SelectEditField()
 			if err != nil {
-				if err.Error() == "cancelled" {
+				if ui.IsCancelError(err) {
 					fmt.Println("Cancelled.")
 					return nil
 				}
@@ -65,7 +59,7 @@ func editCmd() *cobra.Command {
 				fmt.Println("(Press Enter without typing to keep the current title)")
 				newTitle, err := ui.PromptString("New title", "")
 				if err != nil {
-					if err.Error() == "cancelled" {
+					if ui.IsCancelError(err) {
 						fmt.Println("Cancelled.")
 						return nil
 					}
@@ -82,7 +76,7 @@ func editCmd() *cobra.Command {
 				fmt.Println("(Press Enter without typing to keep the current URL)")
 				newURL, err := ui.PromptString("New URL", "")
 				if err != nil {
-					if err.Error() == "cancelled" {
+					if ui.IsCancelError(err) {
 						fmt.Println("Cancelled.")
 						return nil
 					}
@@ -109,14 +103,14 @@ func editCmd() *cobra.Command {
 				fmt.Printf("URL: %s → %s\n", originalURL, targetBookmark.URL)
 			}
 			if originalCategory != targetBookmark.Category {
-				fmt.Printf("Category: %s → %s\n", formatCategory(originalCategory), formatCategory(targetBookmark.Category))
+				fmt.Printf("Category: %s → %s\n", ui.FormatCategory(originalCategory), ui.FormatCategory(targetBookmark.Category))
 			}
 			fmt.Println("---------------------")
 
 			// Confirm changes
 			confirm, err := ui.Confirm("Save changes?")
 			if err != nil {
-				if err.Error() == "cancelled" {
+				if ui.IsCancelError(err) {
 					fmt.Println("Cancelled.")
 					return nil
 				}
@@ -135,7 +129,7 @@ func editCmd() *cobra.Command {
 			fmt.Printf("✅ Bookmark updated successfully!\n")
 			fmt.Printf("Title: %s\n", targetBookmark.Title)
 			fmt.Printf("URL: %s\n", targetBookmark.URL)
-			fmt.Printf("Category: %s\n", formatCategory(targetBookmark.Category))
+			fmt.Printf("Category: %s\n", ui.FormatCategory(targetBookmark.Category))
 
 			return nil
 		},

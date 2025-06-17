@@ -65,11 +65,12 @@ func navigateWithAction(categoryTree *category.Node, bookmarks []*bookmark.Bookm
 			return nil
 		}
 
+		// Use DetailedSelectTemplates but override Details for bookmark display
 		templates := &promptui.SelectTemplates{
-			Label:    "{{ . | cyan | bold }}",
-			Active:   "{{ \"▶\" | cyan | bold }} {{ .Display | cyan }}",
-			Inactive: "  {{ .Display | faint }}",
-			Selected: "{{ \"✔\" | green | bold }} {{ .Display | green }}",
+			Label:    DetailedSelectTemplates.Label,
+			Active:   DetailedSelectTemplates.Active,
+			Inactive: DetailedSelectTemplates.Inactive,
+			Selected: DetailedSelectTemplates.Selected,
 			Details: `
 {{ if eq .Type "bookmark" }}{{ if .Bookmark }}
 {{ "--------- Bookmark Details ----------" | faint }}
@@ -79,15 +80,14 @@ func navigateWithAction(categoryTree *category.Node, bookmarks []*bookmark.Bookm
 {{ end }}{{ end }}`,
 		}
 
-		searcher := func(input string, index int) bool {
+		searcher := CreateSearcher(func(index int) string {
 			item := items[index]
-			searchText := strings.ToLower(item.Display)
+			searchText := item.Display
 			if item.Bookmark != nil {
-				searchText += " " + strings.ToLower(item.Bookmark.URL)
+				searchText += " " + item.Bookmark.URL
 			}
-			input = strings.ToLower(input)
-			return strings.Contains(searchText, input)
-		}
+			return searchText
+		})
 
 		promptLabel := label
 		if label == "" {
@@ -106,10 +106,7 @@ func navigateWithAction(categoryTree *category.Node, bookmarks []*bookmark.Bookm
 
 		i, _, err := prompt.Run()
 		if err != nil {
-			if err == promptui.ErrInterrupt || err == promptui.ErrEOF {
-				return fmt.Errorf("cancelled")
-			}
-			return err
+			return WrapCancelError(err)
 		}
 
 		selected := items[i]

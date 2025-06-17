@@ -252,17 +252,10 @@ func categoryExists(path string, categories []string) bool {
 }
 
 func selectEmptyCategory(categories []string) (string, error) {
-	templates := &promptui.SelectTemplates{
-		Label:    "{{ . }}",
-		Active:   "▶ {{ . }}",
-		Inactive: "  {{ . }}",
-		Selected: "{{ . }}",
-	}
-
 	prompt := promptui.Select{
 		Label:     "Select category to delete",
 		Items:     categories,
-		Templates: templates,
+		Templates: ui.SimpleSelectTemplates,
 		Size:      10,
 	}
 

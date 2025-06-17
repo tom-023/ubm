@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/tom-023/ubm/internal/bookmark"
-	"github.com/tom-023/ubm/internal/category"
 	"github.com/tom-023/ubm/internal/ui"
 	"github.com/tom-023/ubm/pkg/validator"
 )
@@ -25,9 +24,8 @@ func addCmd() *cobra.Command {
 			// Get URL
 			url, err = ui.PromptURL("")
 			if err != nil {
-				if err.Error() == "cancelled" {
-					fmt.Println("\nCancelled.")
-					return nil
+				if ui.IsCancelError(err) {
+					return ui.HandleCancelError(err)
 				}
 				return fmt.Errorf("failed to get URL: %w", err)
 			}
@@ -42,9 +40,8 @@ func addCmd() *cobra.Command {
 			// TODO: Auto-detect title from URL
 			title, err = ui.PromptString("Title", extractDomainFromURL(url))
 			if err != nil {
-				if err.Error() == "cancelled" {
-					fmt.Println("\nCancelled.")
-					return nil
+				if ui.IsCancelError(err) {
+					return ui.HandleCancelError(err)
 				}
 				return fmt.Errorf("failed to get title: %w", err)
 			}
@@ -56,19 +53,13 @@ func addCmd() *cobra.Command {
 			}
 
 			// Build category tree
-			catManager := category.NewManager()
-			bookmarkCounts := make(map[string]int)
-			for _, b := range data.Bookmarks {
-				bookmarkCounts[b.Category]++
-			}
-			categoryTree := catManager.BuildTree(data.Categories, bookmarkCounts)
+			categoryTree := ui.BuildCategoryTree(data)
 
 			// Select category
 			selectedCategory, err := ui.SelectCategory(categoryTree, "")
 			if err != nil {
-				if err.Error() == "cancelled" {
-					fmt.Println("\nCancelled.")
-					return nil
+				if ui.IsCancelError(err) {
+					return ui.HandleCancelError(err)
 				}
 				return fmt.Errorf("failed to select category: %w", err)
 			}
@@ -98,7 +89,7 @@ func addCmd() *cobra.Command {
 			fmt.Printf("✅ Bookmark added successfully!\n")
 			fmt.Printf("Title: %s\n", b.Title)
 			fmt.Printf("URL: %s\n", b.URL)
-			fmt.Printf("Category: %s\n", formatCategory(b.Category))
+			fmt.Printf("Category: %s\n", ui.FormatCategory(b.Category))
 
 			return nil
 		},
@@ -121,9 +112,3 @@ func extractDomainFromURL(url string) string {
 	return url
 }
 
-func formatCategory(cat string) string {
-	if cat == "" {
-		return "uncategorized"
-	}
-	return cat
-}
