@@ -14,9 +14,9 @@ func moveCmd() *cobra.Command {
 		Long:  `Interactively select a bookmark and move it to a different category.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Load data
-			data, err := store.Load()
+			data, categoryTree, err := loadDataAndBuildTree()
 			if err != nil {
-				return fmt.Errorf("failed to load data: %w", err)
+				return err
 			}
 
 			if len(data.Bookmarks) == 0 {
@@ -24,17 +24,10 @@ func moveCmd() *cobra.Command {
 				return nil
 			}
 
-			// Build category tree
-			categoryTree := ui.BuildCategoryTree(data)
-
 			// Navigate and select bookmark
 			targetBookmark, err := ui.NavigateAndSelectBookmark(categoryTree, data.Bookmarks, "Select bookmark to move")
 			if err != nil {
-				if ui.IsCancelError(err) {
-					fmt.Println("Cancelled.")
-					return nil
-				}
-				return err
+				return handleCancelError(err)
 			}
 
 			// Store original category
@@ -47,11 +40,7 @@ func moveCmd() *cobra.Command {
 			// Select new category
 			newCategory, err := ui.SelectCategory(categoryTree, originalCategory)
 			if err != nil {
-				if ui.IsCancelError(err) {
-					fmt.Println("Cancelled.")
-					return nil
-				}
-				return err
+				return handleCancelError(err)
 			}
 
 			// Check if category actually changed
@@ -64,18 +53,7 @@ func moveCmd() *cobra.Command {
 			targetBookmark.SetCategory(newCategory)
 
 			// Add new category if it doesn't exist
-			if newCategory != "" {
-				categoryExists := false
-				for _, cat := range data.Categories {
-					if cat == newCategory {
-						categoryExists = true
-						break
-					}
-				}
-				if !categoryExists {
-					data.Categories = append(data.Categories, newCategory)
-				}
-			}
+			ensureCategoryExists(data, newCategory)
 
 			// Update bookmark
 			if err := store.UpdateBookmark(targetBookmark); err != nil {

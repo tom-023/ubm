@@ -22,9 +22,9 @@ func deleteCmd() *cobra.Command {
 				bookmarkID = args[0]
 			} else {
 				// Interactive selection
-				data, err := store.Load()
+				data, categoryTree, err := loadDataAndBuildTree()
 				if err != nil {
-					return fmt.Errorf("failed to load data: %w", err)
+					return err
 				}
 
 				if len(data.Bookmarks) == 0 {
@@ -32,17 +32,10 @@ func deleteCmd() *cobra.Command {
 					return nil
 				}
 
-				// Build category tree
-				categoryTree := ui.BuildCategoryTree(data)
-
 				// Navigate and select bookmark
 				bookmark, err := ui.NavigateAndSelectBookmark(categoryTree, data.Bookmarks, "Select bookmark to delete")
 				if err != nil {
-					if ui.IsCancelError(err) {
-						fmt.Println("Cancelled.")
-						return nil
-					}
-					return err
+					return handleCancelError(err)
 				}
 				bookmarkID = bookmark.ID
 			}
@@ -58,11 +51,7 @@ func deleteCmd() *cobra.Command {
 				confirmMsg := fmt.Sprintf("Delete bookmark '%s' (%s)?", bookmark.Title, bookmark.URL)
 				confirm, err := ui.Confirm(confirmMsg)
 				if err != nil {
-					if ui.IsCancelError(err) {
-						fmt.Println("Cancelled.")
-						return nil
-					}
-					return err
+					return handleCancelError(err)
 				}
 				if !confirm {
 					fmt.Println("Deletion cancelled.")

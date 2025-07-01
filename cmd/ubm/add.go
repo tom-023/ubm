@@ -24,10 +24,7 @@ func addCmd() *cobra.Command {
 			// Get URL
 			url, err = ui.PromptURL("")
 			if err != nil {
-				if ui.IsCancelError(err) {
-					return ui.HandleCancelError(err)
-				}
-				return fmt.Errorf("failed to get URL: %w", err)
+				return handleCancelError(err)
 			}
 
 			// Normalize and validate URL
@@ -40,43 +37,23 @@ func addCmd() *cobra.Command {
 			// TODO: Auto-detect title from URL
 			title, err = ui.PromptString("Title", extractDomainFromURL(url))
 			if err != nil {
-				if ui.IsCancelError(err) {
-					return ui.HandleCancelError(err)
-				}
-				return fmt.Errorf("failed to get title: %w", err)
+				return handleCancelError(err)
 			}
 
 			// Load existing data for category selection
-			data, err := store.Load()
+			data, categoryTree, err := loadDataAndBuildTree()
 			if err != nil {
-				return fmt.Errorf("failed to load data: %w", err)
+				return err
 			}
-
-			// Build category tree
-			categoryTree := ui.BuildCategoryTree(data)
 
 			// Select category
 			selectedCategory, err := ui.SelectCategory(categoryTree, "")
 			if err != nil {
-				if ui.IsCancelError(err) {
-					return ui.HandleCancelError(err)
-				}
-				return fmt.Errorf("failed to select category: %w", err)
+				return handleCancelError(err)
 			}
 
 			// Create new category if needed
-			if selectedCategory != "" {
-				categoryExists := false
-				for _, cat := range data.Categories {
-					if cat == selectedCategory {
-						categoryExists = true
-						break
-					}
-				}
-				if !categoryExists {
-					data.Categories = append(data.Categories, selectedCategory)
-				}
-			}
+			ensureCategoryExists(data, selectedCategory)
 
 			// Create bookmark
 			b := bookmark.New(title, url, selectedCategory)
@@ -86,10 +63,7 @@ func addCmd() *cobra.Command {
 				return fmt.Errorf("failed to save bookmark: %w", err)
 			}
 
-			fmt.Printf("✅ Bookmark added successfully!\n")
-			fmt.Printf("Title: %s\n", b.Title)
-			fmt.Printf("URL: %s\n", b.URL)
-			fmt.Printf("Category: %s\n", ui.FormatCategory(b.Category))
+			printBookmarkSuccess("added", b)
 
 			return nil
 		},

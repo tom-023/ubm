@@ -16,9 +16,9 @@ Use arrow keys to navigate, Enter to select, and q to quit.`,
 		Aliases: []string{"ls"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Load bookmarks
-			data, err := store.Load()
+			data, categoryTree, err := loadDataAndBuildTree()
 			if err != nil {
-				return fmt.Errorf("failed to load bookmarks: %w", err)
+				return err
 			}
 
 			if len(data.Bookmarks) == 0 {
@@ -26,16 +26,9 @@ Use arrow keys to navigate, Enter to select, and q to quit.`,
 				return nil
 			}
 
-			// Build category tree
-			categoryTree := ui.BuildCategoryTree(data)
-
 			// Start interactive navigation
 			if err := ui.NavigateBookmarks(categoryTree, data.Bookmarks); err != nil {
-				if ui.IsCancelError(err) {
-					fmt.Println("Cancelled.")
-					return nil
-				}
-				return fmt.Errorf("navigation error: %w", err)
+				return handleCancelError(err)
 			}
 
 			return nil

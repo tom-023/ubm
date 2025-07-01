@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -233,25 +234,5 @@ func (s *Storage) SearchBookmarks(query string) ([]*bookmark.Bookmark, error) {
 }
 
 func containsIgnoreCase(s, substr string) bool {
-	s = string([]rune(s))
-	substr = string([]rune(substr))
-	
-	if len(substr) > len(s) {
-		return false
-	}
-	
-	for i := 0; i <= len(s)-len(substr); i++ {
-		match := true
-		for j := 0; j < len(substr); j++ {
-			if s[i+j] != substr[j] && s[i+j] != substr[j]+32 && s[i+j] != substr[j]-32 {
-				match = false
-				break
-			}
-		}
-		if match {
-			return true
-		}
-	}
-	
-	return false
+	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
 }
