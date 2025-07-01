@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tom-023/ubm/internal/cmd/helpers"
 	"github.com/tom-023/ubm/internal/ui"
 )
 
@@ -22,7 +23,7 @@ func deleteCmd() *cobra.Command {
 				bookmarkID = args[0]
 			} else {
 				// Interactive selection
-				data, categoryTree, err := loadDataAndBuildTree()
+				data, categoryTree, err := helpers.LoadDataAndBuildTree(store)
 				if err != nil {
 					return err
 				}
@@ -35,7 +36,7 @@ func deleteCmd() *cobra.Command {
 				// Navigate and select bookmark
 				bookmark, err := ui.NavigateAndSelectBookmark(categoryTree, data.Bookmarks, "Select bookmark to delete")
 				if err != nil {
-					return handleCancelError(err)
+					return helpers.HandleCancelError(err)
 				}
 				bookmarkID = bookmark.ID
 			}
@@ -51,7 +52,7 @@ func deleteCmd() *cobra.Command {
 				confirmMsg := fmt.Sprintf("Delete bookmark '%s' (%s)?", bookmark.Title, bookmark.URL)
 				confirm, err := ui.Confirm(confirmMsg)
 				if err != nil {
-					return handleCancelError(err)
+					return helpers.HandleCancelError(err)
 				}
 				if !confirm {
 					fmt.Println("Deletion cancelled.")

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tom-023/ubm/internal/cmd/helpers"
 	"github.com/tom-023/ubm/internal/ui"
 )
 
@@ -14,7 +15,7 @@ func moveCmd() *cobra.Command {
 		Long:  `Interactively select a bookmark and move it to a different category.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Load data
-			data, categoryTree, err := loadDataAndBuildTree()
+			data, categoryTree, err := helpers.LoadDataAndBuildTree(store)
 			if err != nil {
 				return err
 			}
@@ -27,7 +28,7 @@ func moveCmd() *cobra.Command {
 			// Navigate and select bookmark
 			targetBookmark, err := ui.NavigateAndSelectBookmark(categoryTree, data.Bookmarks, "Select bookmark to move")
 			if err != nil {
-				return handleCancelError(err)
+				return helpers.HandleCancelError(err)
 			}
 
 			// Store original category
@@ -40,7 +41,7 @@ func moveCmd() *cobra.Command {
 			// Select new category
 			newCategory, err := ui.SelectCategory(categoryTree, originalCategory)
 			if err != nil {
-				return handleCancelError(err)
+				return helpers.HandleCancelError(err)
 			}
 
 			// Check if category actually changed
@@ -53,7 +54,7 @@ func moveCmd() *cobra.Command {
 			targetBookmark.SetCategory(newCategory)
 
 			// Add new category if it doesn't exist
-			ensureCategoryExists(data, newCategory)
+			helpers.EnsureCategoryExists(data, newCategory)
 
 			// Update bookmark
 			if err := store.UpdateBookmark(targetBookmark); err != nil {

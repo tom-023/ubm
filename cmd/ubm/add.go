@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/tom-023/ubm/internal/bookmark"
+	"github.com/tom-023/ubm/internal/cmd/helpers"
 	"github.com/tom-023/ubm/internal/ui"
 	"github.com/tom-023/ubm/pkg/validator"
 )
@@ -24,7 +25,7 @@ func addCmd() *cobra.Command {
 			// Get URL
 			url, err = ui.PromptURL("")
 			if err != nil {
-				return handleCancelError(err)
+				return helpers.HandleCancelError(err)
 			}
 
 			// Normalize and validate URL
@@ -37,11 +38,11 @@ func addCmd() *cobra.Command {
 			// TODO: Auto-detect title from URL
 			title, err = ui.PromptString("Title", extractDomainFromURL(url))
 			if err != nil {
-				return handleCancelError(err)
+				return helpers.HandleCancelError(err)
 			}
 
 			// Load existing data for category selection
-			data, categoryTree, err := loadDataAndBuildTree()
+			data, categoryTree, err := helpers.LoadDataAndBuildTree(store)
 			if err != nil {
 				return err
 			}
@@ -49,11 +50,11 @@ func addCmd() *cobra.Command {
 			// Select category
 			selectedCategory, err := ui.SelectCategory(categoryTree, "")
 			if err != nil {
-				return handleCancelError(err)
+				return helpers.HandleCancelError(err)
 			}
 
 			// Create new category if needed
-			ensureCategoryExists(data, selectedCategory)
+			helpers.EnsureCategoryExists(data, selectedCategory)
 
 			// Create bookmark
 			b := bookmark.New(title, url, selectedCategory)
@@ -63,7 +64,7 @@ func addCmd() *cobra.Command {
 				return fmt.Errorf("failed to save bookmark: %w", err)
 			}
 
-			printBookmarkSuccess("added", b)
+			helpers.PrintBookmarkSuccess("added", b)
 
 			return nil
 		},

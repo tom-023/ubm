@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tom-023/ubm/internal/cmd/helpers"
 	"github.com/tom-023/ubm/internal/ui"
 	"github.com/tom-023/ubm/pkg/validator"
 )
@@ -15,7 +16,7 @@ func editCmd() *cobra.Command {
 		Long:  `Interactively select a bookmark and edit its title or URL.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Load data
-			data, categoryTree, err := loadDataAndBuildTree()
+			data, categoryTree, err := helpers.LoadDataAndBuildTree(store)
 			if err != nil {
 				return err
 			}
@@ -28,13 +29,13 @@ func editCmd() *cobra.Command {
 			// Navigate and select bookmark
 			targetBookmark, err := ui.NavigateAndSelectBookmark(categoryTree, data.Bookmarks, "Select bookmark to edit")
 			if err != nil {
-				return handleCancelError(err)
+				return helpers.HandleCancelError(err)
 			}
 
 			// Select what to edit
 			field, err := ui.SelectEditField()
 			if err != nil {
-				return handleCancelError(err)
+				return helpers.HandleCancelError(err)
 			}
 
 			// Store original values for comparison
@@ -48,7 +49,7 @@ func editCmd() *cobra.Command {
 				fmt.Println("(Press Enter without typing to keep the current title)")
 				newTitle, err := ui.PromptString("New title", "")
 				if err != nil {
-					return handleCancelError(err)
+					return helpers.HandleCancelError(err)
 				}
 				// If user didn't enter anything, keep the old title
 				if newTitle == "" {
@@ -61,7 +62,7 @@ func editCmd() *cobra.Command {
 				fmt.Println("(Press Enter without typing to keep the current URL)")
 				newURL, err := ui.PromptString("New URL", "")
 				if err != nil {
-					return handleCancelError(err)
+					return helpers.HandleCancelError(err)
 				}
 				// If user didn't enter anything, keep the old URL
 				if newURL == "" {
@@ -91,7 +92,7 @@ func editCmd() *cobra.Command {
 			// Confirm changes
 			confirm, err := ui.Confirm("Save changes?")
 			if err != nil {
-				return handleCancelError(err)
+				return helpers.HandleCancelError(err)
 			}
 			if !confirm {
 				fmt.Println("Edit cancelled.")
@@ -103,7 +104,7 @@ func editCmd() *cobra.Command {
 				return fmt.Errorf("failed to update bookmark: %w", err)
 			}
 
-			printBookmarkSuccess("updated", targetBookmark)
+			helpers.PrintBookmarkSuccess("updated", targetBookmark)
 
 			return nil
 		},

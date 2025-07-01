@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tom-023/ubm/internal/cmd/helpers"
 	"github.com/tom-023/ubm/internal/ui"
 )
 
@@ -16,7 +17,7 @@ Use arrow keys to navigate, Enter to select, and q to quit.`,
 		Aliases: []string{"ls"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Load bookmarks
-			data, categoryTree, err := loadDataAndBuildTree()
+			data, categoryTree, err := helpers.LoadDataAndBuildTree(store)
 			if err != nil {
 				return err
 			}
@@ -28,7 +29,7 @@ Use arrow keys to navigate, Enter to select, and q to quit.`,
 
 			// Start interactive navigation
 			if err := ui.NavigateBookmarks(categoryTree, data.Bookmarks); err != nil {
-				return handleCancelError(err)
+				return helpers.HandleCancelError(err)
 			}
 
 			return nil
